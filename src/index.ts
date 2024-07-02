@@ -1,4 +1,8 @@
+import {
+  VideoCallContext,
+  useVideoCall,
+  ClientRegistry,
+  ClientKind,
+} from "./provider";
 
-import { VideoCallContext, useVideoCall, ClientRegistry, ClientKind } from './provider';
-
-export {VideoCallContext,  useVideoCall, ClientRegistry, ClientKind}
+export { VideoCallContext, useVideoCall, ClientRegistry, ClientKind };
