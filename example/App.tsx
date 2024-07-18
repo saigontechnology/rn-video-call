@@ -1,11 +1,11 @@
 import { Button, StyleSheet, View } from 'react-native';
 
-import {VideoCallContext, ClientRegistry, ClientKind} from 'rn-video-call'
+import {VideoCallContext} from 'rn-video-call'
+import {createWebRTCFirbaseProxy} from 'packages'
 
 export default function App() {
 
-  const client = ClientRegistry.getInstance(ClientKind.WEBRTC_FIREBASE)
-  //const client = ClientRegistry.getInstance(ClientKind.THIRD_PARTY)
+  const client = createWebRTCFirbaseProxy({})
   
   return (
     <VideoCallContext.Provider value={client}>

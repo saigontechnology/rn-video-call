@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "rn-video-call": ["../../src/index"],
+      "rn-video-call/*": ["../../src/*"]
+    }
+  }
+}
