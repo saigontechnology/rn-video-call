@@ -29,14 +29,14 @@ Run `npx pod-install` after installing the npm package.
 ### Configure for Android
 
 
+#  Usaged
+
 PROJECT REQUIREMENT:
 
 - Provide Video Call feature module
 - Proxy for Video call service, (WEBRTC-FIREBASE, THIRD-PARTY, ...)
 - Integrate react firebase chat
 
-
-#  Usaged
 I. Video Call feature:
  
  Setup

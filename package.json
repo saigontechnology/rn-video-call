@@ -25,10 +25,12 @@
   "bugs": {
     "url": "https://github.com/saigontechnology/rn-video-call/issues"
   },
-  "author": "TKimVo <tvo@happymoney.com> (https://github.com/ThinhKimVo)",
+  "author": "TKimVo <thinh.vo@saigontechnology.com> (https://github.com/ThinhKimVo)",
   "license": "MIT",
   "homepage": "https://github.com/saigontechnology/rn-video-call#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react-native-webrtc": "^124.0.3"
+  },
   "devDependencies": {
     "@types/react": "^18.0.25",
     "expo-module-scripts": "^3.5.2",
