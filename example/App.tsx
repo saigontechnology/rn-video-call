@@ -1,23 +1,20 @@
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
 
-import * as RnVideoCall from 'rn-video-call';
-
-import {VideoCallContext, ClientRegistry, ClientKind} from 'rn-video-call'
+import { VideoCallContext, ClientRegistry, ClientKind } from "rn-video-call";
 
 export default function App() {
 
-  const client = ClientRegistry.getInstance(ClientKind.WEBRTC_FIREBASE)
+  const client =  useRef(ClientRegistry.getInstance(ClientKind.WEBRTC_FIREBASE))
+
   return (
-    <VideoCallContext.Provider value={client}>
+    <VideoCallContext.Provider value={client.current}>
       <View style={styles.container}>
-        <Text>{RnVideoCall.hello()}</Text>
-        <>
-          <Button title='SETUP' onPress={client.setup}/>
-          <Button title='CREATE' onPress={client.create}/>
-          <Button title='JOIN' onPress={client.join}/> 
-          <Button title='HANUP' onPress={client.hangup}/> 
-          <Button title='CLEAN' onPress={client.cleanUp}/> 
-        </>
+        <Text>Webrtc firebase demo</Text>
+        <Button title="CREATE" onPress={client.current.create} />
+        <Button title="JOIN" onPress={client.current.join} />
+        <Button title="HANUP" onPress={client.current.hangup} />
+        <Button title="CLEAN" onPress={client.current.cleanUp} />
       </View>
     </VideoCallContext.Provider>
   );
@@ -26,8 +23,8 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
