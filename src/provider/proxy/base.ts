@@ -1,23 +1,20 @@
 import { IVideoCall } from "./video-call-methods-interface";
 
-export  class Base implements IVideoCall {
-  constructor(parameters) {
-    
-  }
-   setup(): void {
+export class Base implements IVideoCall {
+  constructor(parameters) {}
+  setup(): void {
     throw new Error("Method not implemented.");
   }
-   create(): void {
+  create(): void {
     throw new Error("Method not implemented.");
   }
-   join(): void {
+  join(): void {
     throw new Error("Method not implemented.");
   }
-   hangup(): void {
+  hangup(): void {
     throw new Error("Method not implemented.");
   }
-   cleanUp(): void {
+  cleanUp(): void {
     throw new Error("Method not implemented.");
   }
 }
-

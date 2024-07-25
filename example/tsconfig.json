@@ -3,10 +3,18 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "rn-video-call": ["../src/index"],
-      "rn-video-call/*": ["../src/*"],
-      "packages": ["../packages"],
-      "packages/*": ["../packages/*"]
+      "rn-video-call": [
+        "../src/index"
+      ],
+      "rn-video-call/*": [
+        "../src/*"
+      ],
+      "packages": [
+        "../packages"
+      ],
+      "packages/*": [
+        "../packages/*"
+      ]
     }
   }
 }
