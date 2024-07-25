@@ -267,7 +267,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     console.log("cleanUp");
   };
 
-  async getStream() {
+  getStream = async () => {
     let isVoiceOnly = false;
     let mediaConstraints = {
       audio: true,
@@ -285,8 +285,9 @@ class WebRTCFirbase extends Base implements IVideoCall {
       return mediaStream;
     } catch (err) {
       console.log("err", err);
+      return null;
     }
-  }
+  };
 }
 
 export const createWebRTCFirbaseProxy = ({}) => {
