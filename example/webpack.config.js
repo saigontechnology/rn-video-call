@@ -6,7 +6,7 @@ module.exports = async (env, argv) => {
     {
       ...env,
       babel: {
-        dangerouslyAddModulePathsToTranspile: ['rn-video-call'],
+        dangerouslyAddModulePathsToTranspile: ['rn-video-call', 'packages/webrtc-firbase'],
       },
     },
     argv
@@ -14,6 +14,7 @@ module.exports = async (env, argv) => {
   config.resolve.modules = [
     path.resolve(__dirname, './node_modules'),
     path.resolve(__dirname, '../node_modules'),
+    path.resolve(__dirname, '../packages/webrtc-firebase/node_modules'),
   ];
 
   return config;

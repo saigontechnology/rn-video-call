@@ -1,7 +1,7 @@
 import { IVideoCall } from "./video-call-methods-interface";
 
 export class Base implements IVideoCall {
-  constructor(parameters) {}
+  constructor(parameters: any) {}
   setup(): void {
     throw new Error("Method not implemented.");
   }

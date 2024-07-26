@@ -1,5 +1,10 @@
-import ClientRegistry from "./provider/ClientRegistry";
-import { ClientKind } from "./provider/ClientKind.types";
 import { useVideoCall, VideoCallContext } from "./provider/Provider";
+import { Base, IVideoCall } from "./provider/proxy";
 
-export { VideoCallContext, useVideoCall, ClientRegistry, ClientKind };
+export * from "./components";
+export {
+  VideoCallContext,
+  useVideoCall,
+  Base,
+  IVideoCall,
+};
