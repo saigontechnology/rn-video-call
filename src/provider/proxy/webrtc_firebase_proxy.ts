@@ -32,7 +32,7 @@ const peerConstraints = {
 };
 
 class WebRTCFirbase extends Base implements IVideoCall {
-  private peerConnection: RTCPeerConnection;
+  private peerConnection: RTCPeerConnection | null = null;
   private connecting: boolean = false;
   private db: any;
   private localMediaStream;
