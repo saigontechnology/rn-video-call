@@ -6,14 +6,24 @@
   "author": "thinh.vo",
   "license": "MIT",
   "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "expo-module lint",
+    "test": "expo-module test",
+    "prepare": "expo-module prepare",
+    "prepublishOnly": "expo-module prepublishOnly",
+    "expo-module": "expo-module"
 
   },
   "dependencies": {
     "expo": "~51.0.17",
+    "expo-module-scripts": "^3.5.2",
+    "expo-modules-core": "^1.12.17",
     "react": "18.2.0",
     "react-native": "0.74.2",
     "react-native-web": "~0.18.7",
-    "react-native-webrtc": "^1.94.1"
+    "react-native-webrtc": "^124.0.3"
+    
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

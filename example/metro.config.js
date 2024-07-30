@@ -16,10 +16,12 @@ config.resolver.blockList = [
 config.resolver.nodeModulesPaths = [
   path.resolve(__dirname, './node_modules'),
   path.resolve(__dirname, '../node_modules'),
+  path.resolve(__dirname, '../packages/webrtc-firebase/node_modules'),
 ];
 
 config.resolver.extraNodeModules = {
   'rn-video-call': '..',
+  'webrtc-firebase': '../packages/webrtc-firebase',
 };
 
 config.watchFolders = [path.resolve(__dirname, '..')];
