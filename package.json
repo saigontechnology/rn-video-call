@@ -35,12 +35,16 @@
     "@types/react": "^18.0.25",
     "expo-module-scripts": "^3.5.2",
     "expo-modules-core": "^1.12.17",
-    "react-native-webrtc": "^124.0.3"
+    "react-native-webrtc": "^124.0.3",
+    "@react-native-firebase/app": "^20.3.0",
+    "@react-native-firebase/firestore": "^20.3.0"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-webrtc": "*"
+    "react-native-webrtc": "*",
+    "@react-native-firebase/app": "*",
+    "@react-native-firebase/firestore": "*"
   }
 }

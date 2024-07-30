@@ -1,27 +1,20 @@
 import { Base } from "./base";
 import { IVideoCall } from "./video-call-methods-interface";
 import {
-  mediaDevices,
-  MediaStreamTrack,
-  RTCPeerConnection,
-} from "react-native-webrtc";
-// import {
-//   addDoc,
-//   collection,
-//   query,
-//   onSnapshot,
-//   setDoc,
-//   getDoc,
-//   getDocs,
-//   updateDoc,
-//   deleteDoc,
-//   doc,
-// } from "@react-native-firebase/firestore";
-import {
   SET_GETTING_CALL_CALLBACK_TYPE,
   SET_LOCAL_STREAM_CALLBACK_TYPE,
   SET_REMOTE_STREAM_CALLBACK_TYPE,
 } from "../webrtcFirebase.types";
+
+import {
+  mediaDevices,
+  MediaStreamTrack,
+  RTCPeerConnection,
+} from "react-native-webrtc";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
+import { COLLECTION_PATHS } from "../webrtcFirebase.constants";
 
 const peerConstraints = {
   iceServers: [
@@ -59,36 +52,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.setRemoteStreamCallback = setRemoteStreamCallback;
     this.setGettingCallCallBack = setGettingCallCallBack;
   }
-
-  // async collectIceCandidates(cRef, localName, remoteName) {
-  //   console.log("localName", localName);
-  //   const candidateCollection = collection(
-  //     this.db,
-  //     "meet",
-  //     "chatId",
-  //     localName
-  //   );
-
-  //   if (this.peerConnection) {
-  //     // on new ICE candidate add it to firestore
-  //     console.log("test");
-  //     this.peerConnection.onicecandidate = (event) => {
-  //       event.candidate &&
-  //         addDoc(candidateCollection, event.candidate.toJSON());
-  //     };
-  //   }
-
-  //   // Get the ICE candidate added to firestore and update the local PC
-  //   const q = query(collection(cRef, remoteName));
-  //   const unsubscribe = onSnapshot(q, (snapshot) => {
-  //     snapshot.docChanges().forEach((change) => {
-  //       if (change.type == "added") {
-  //         const candidate = new RTCIceCandidate(change.doc.data());
-  //         this.peerConnection?.addIceCandidate(candidate);
-  //       }
-  //     });
-  //   });
-  // }
 
   streamCleanUp = () => {
     console.log("streamCleanUp");
@@ -162,21 +125,56 @@ class WebRTCFirbase extends Base implements IVideoCall {
     }
   };
 
+  collectIceCandidates = async (
+    cRef: FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData>,
+    localName: string,
+    remoteName: string
+  ) => {
+    console.log({ localName, remoteName });
+
+    if (this.peerConnection) {
+      // on new ICE candidate add it to firestore
+      console.log("test");
+
+      this.peerConnection.addEventListener("icecandidate", (event) => {
+        // When you find a null candidate then there are no more candidates.
+        // Gathering of candidates has finished.
+        if (!event.candidate) {
+          return;
+        }
+
+        // Send the event.candidate onto the person you're calling.
+        // Keeping to Trickle ICE Standards, you should send the candidates immediately.
+        cRef.collection(localName).add(event.candidate.toJSON());
+      });
+    }
+
+    // Get the ICE candidate added to firestore and update the local PC
+    cRef.collection(remoteName).onSnapshot((snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type == "added") {
+          const candidate = new RTCIceCandidate(change.doc.data());
+          this.peerConnection?.addIceCandidate(candidate);
+        }
+      });
+    });
+  };
+
   create = async () => {
     console.log("calling");
     this.connecting = true;
 
     // setUp webrtc
     if (!this.peerConnection) {
-      this.setup();
+      await this.setup();
     }
 
-    // Document for the call
-    // const cRef = doc(this.db, "meet", "chatId");
-    // await setDoc(cRef, {});
+    const cRef = await firestore()
+      .collection(COLLECTION_PATHS.MEETS)
+      .doc("chatId");
 
     // Exchange the ICE candidates between the caller and callee
-    // this.collectIceCandidates(cRef, "caller", "callee");
+    this.collectIceCandidates(cRef, "caller", "callee");
 
     if (this.peerConnection) {
       // Create the offer for the call
@@ -202,8 +200,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
           },
         };
 
-        // cRef.set(cWithOffer)
-        // await setDoc(cRef, cWithOffer);
+        await cRef.set(cWithOffer);
       } catch (error) {
         console.log("error", error);
       }
@@ -215,12 +212,8 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.connecting = true;
     this.setGettingCallCallBack?.(false);
 
-    //const cRef = firestore().collection("meet").doc("chatId")
-    // const cRef = doc(this.db, "meet", "chatId");
-    // const offer = (await cRef.get()).data()?.offer
-    // const offer = (await getDoc(cRef)).data()?.offer;
-
-    const offer = null;
+    const cRef = firestore().collection(COLLECTION_PATHS.MEETS).doc("chatId");
+    const offer = (await cRef.get()).data()?.offer;
 
     if (offer) {
       // Setup Webrtc
@@ -228,7 +221,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
       // Exchange the ICE candidates
       // Check the parameters, Its reversed. Since the joining part is callee
-      // this.collectIceCandidates(cRef, "callee", "caller");
+      this.collectIceCandidates(cRef, "callee", "caller");
 
       if (this.peerConnection) {
         this.peerConnection.setRemoteDescription(
@@ -245,8 +238,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
             sdp: answer.sdp,
           },
         };
-        // cRef.update(cWithAnswer)
-        // await updateDoc(cRef, cWithAnswer);
+        cRef.update(cWithAnswer);
       }
     }
   };
