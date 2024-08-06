@@ -11,6 +11,7 @@ import {
 import VideoComponent from './Component'
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
+import firestore, { doc, query, collection, onSnapshot } from "@react-native-firebase/firestore";
 
 export default function App() {
   const client = useRef(createWebRTCFirbaseProxy({}));
@@ -18,6 +19,38 @@ export default function App() {
   const [localStream, setLocalStream] = useState<MediaStream | null>();
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>();
   const [gettingCall, setGettingCall] = useState(false);
+  const connecting = useRef(false);
+
+  useEffect(() => {
+    const cRef = firestore()
+      .collection('meets')
+      .doc("chatId");
+
+    const subscribe = onSnapshot(cRef, (snapshot: any) => {
+      const data = snapshot.data();
+
+      // if there is offer for chatId set the getting call flag
+      if (data && data.offer && !connecting.current) {
+        setGettingCall(true);
+      }
+    });
+
+    // On Delete of collection call hangup
+    // The other side has clicked on hangup
+    const qdelete = query(collection(cRef, "callee"));
+    const subscribeDelete = onSnapshot(qdelete, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type == "removed") {
+          client.current.hangup();
+        }
+      });
+    });
+    return () => {
+      subscribe();
+      subscribeDelete();
+    };
+  }, []);
+
 
   useEffect(() => {
     client.current.setupCallbacks(

@@ -1,22 +1,23 @@
 import { Base, IVideoCall } from "rn-video-call";
 import {
   mediaDevices,
-  MediaStreamTrack,
   MediaStream,
   RTCPeerConnection,
+  RTCSessionDescription,
+  RTCIceCandidate,
 } from "react-native-webrtc";
-// import {
-//   addDoc,
-//   collection,
-//   query,
-//   onSnapshot,
-//   setDoc,
-//   getDoc,
-//   getDocs,
-//   updateDoc,
-//   deleteDoc,
-//   doc,
-// } from "@react-native-firebase/firestore";
+import firestore, {
+  query,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  collection,
+  updateDoc,
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
+import { COLLECTION_PATHS } from "./constants";
 import {
   SET_GETTING_CALL_CALLBACK_TYPE,
   SET_LOCAL_STREAM_CALLBACK_TYPE,
@@ -36,7 +37,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
   private connecting: boolean = false;
   private db: any;
   private localMediaStream: MediaStream | null = null;
-  private remoteStream = null;
+  private remoteMediaStream: MediaStream | null = null;
 
   private setLocalStreamCallback!: SET_LOCAL_STREAM_CALLBACK_TYPE;
   private setRemoteStreamCallback!: SET_REMOTE_STREAM_CALLBACK_TYPE;
@@ -44,11 +45,14 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
   constructor() {
     super({});
+
+    const db = firestore().collection(COLLECTION_PATHS.MEETS);
+    this.setupFirebase(db);
   }
 
-  setupFirebase(db: any) {
+  setupFirebase = (db: any) => {
     this.db = db;
-  }
+  };
 
   setupCallbacks = (
     setLocalStreamCallback: SET_LOCAL_STREAM_CALLBACK_TYPE,
@@ -60,35 +64,40 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.setGettingCallCallBack = setGettingCallCallBack;
   };
 
-  // async collectIceCandidates(cRef, localName, remoteName) {
-  //   console.log("localName", localName);
-  //   const candidateCollection = collection(
-  //     this.db,
-  //     "meet",
-  //     "chatId",
-  //     localName
-  //   );
+  collectIceCandidates = async (
+    cRef: FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData>,
+    localName: string,
+    remoteName: string
+  ) => {
+    console.log({ localName, remoteName });
 
-  //   if (this.peerConnection) {
-  //     // on new ICE candidate add it to firestore
-  //     console.log("test");
-  //     this.peerConnection.onicecandidate = (event) => {
-  //       event.candidate &&
-  //         addDoc(candidateCollection, event.candidate.toJSON());
-  //     };
-  //   }
+    if (this.peerConnection) {
+      // on new ICE candidate add it to firestore
+      this.peerConnection.addEventListener("icecandidate", (event) => {
+        console.log("icecandidate")
+        // When you find a null candidate then there are no more candidates.
+        // Gathering of candidates has finished.
+        if (!event.candidate) {
+          return;
+        }
 
-  //   // Get the ICE candidate added to firestore and update the local PC
-  //   const q = query(collection(cRef, remoteName));
-  //   const unsubscribe = onSnapshot(q, (snapshot) => {
-  //     snapshot.docChanges().forEach((change) => {
-  //       if (change.type == "added") {
-  //         const candidate = new RTCIceCandidate(change.doc.data());
-  //         this.peerConnection?.addIceCandidate(candidate);
-  //       }
-  //     });
-  //   });
-  // }
+        // Send the event.candidate onto the person you're calling.
+        // Keeping to Trickle ICE Standards, you should send the candidates immediately.
+        cRef.collection(localName).add(event.candidate.toJSON());
+      });
+    }
+
+    // Get the ICE candidate added to firestore and update the local PC
+    cRef.collection(remoteName).onSnapshot((snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type == "added") {
+          console.log("remoteName", change.doc.data());
+          const candidate = new RTCIceCandidate(change.doc.data());
+          this.peerConnection?.addIceCandidate(candidate);
+        }
+      });
+    });
+  };
 
   streamCleanUp = () => {
     console.log("streamCleanUp");
@@ -98,29 +107,30 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.localMediaStream.release();
     }
     this.localMediaStream = null;
-    this.remoteStream = null;
+    this.remoteMediaStream = null;
 
     this.setLocalStreamCallback?.(null);
     this.setRemoteStreamCallback?.(null);
   };
 
-  // async firebaseCleanUp() {
-  //   console.log("firebaseCleanUp");
-  //   const cRef = doc(this.db, "meet", "chatId");
-  //   if (cRef) {
-  //     const qee = query(collection(cRef, "callee"));
-  //     const calleeCandidate = await getDocs(qee);
-  //     calleeCandidate.forEach(async (candidate) => {
-  //       await deleteDoc(candidate.ref);
-  //     });
-  //     const qer = query(collection(cRef, "caller"));
-  //     const callerCandidate = await getDocs(qer);
-  //     callerCandidate.forEach(async (candidate) => {
-  //       await deleteDoc(candidate.ref);
-  //     });
-  //     deleteDoc(cRef);
-  //   }
-  // }
+  firebaseCleanUp = async () => {
+    console.log("firebaseCleanUp");
+    // const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
+    const cRef = this.db.doc("chatId");
+    if (cRef) {
+      const qee = query(collection(cRef, "callee"));
+      const calleeCandidate = await getDocs(qee);
+      calleeCandidate.forEach(async (candidate) => {
+        await deleteDoc(candidate.ref);
+      });
+      const qer = query(collection(cRef, "caller"));
+      const callerCandidate = await getDocs(qer);
+      callerCandidate.forEach(async (candidate) => {
+        await deleteDoc(candidate.ref);
+      });
+      deleteDoc(cRef);
+    }
+  };
 
   getConnecting = async () => {
     return this.connecting;
@@ -135,15 +145,16 @@ class WebRTCFirbase extends Base implements IVideoCall {
     }
   }
 
-  getPeerConnection() {
+  getPeerConnection = () => {
     return this.peerConnection;
-  }
+  };
 
   setup = async () => {
     console.log("Setup webrtc");
-
     try {
-      this.peerConnection = new RTCPeerConnection(peerConstraints);
+      const peerConnection = new RTCPeerConnection(peerConstraints);
+
+      this.peerConnection = peerConnection
 
       // Get the audio and video stream for the call
       const stream = await this.getStream();
@@ -151,13 +162,18 @@ class WebRTCFirbase extends Base implements IVideoCall {
       if (stream) {
         this.setLocalStreamCallback?.(stream);
         this.localMediaStream = stream;
-        this.localMediaStream
-          .getTracks()
-          .forEach(
-            (track: MediaStreamTrack) =>
-              this.localMediaStream &&
-              this.peerConnection?.addTrack(track, this.localMediaStream)
-          );
+
+        peerConnection.addEventListener('track', event => {
+          console.log("track", event)
+          // Grab the remote track from the connected participant.
+          this.remoteMediaStream = this.remoteMediaStream || new MediaStream();
+          event.track && this.remoteMediaStream?.addTrack(event.track);
+          this.setRemoteStreamCallback?.(this.remoteMediaStream)
+        } );
+
+        this.localMediaStream.getTracks().forEach( 
+          track =>  this.localMediaStream && peerConnection.addTrack( track, this.localMediaStream )
+        );
       }
     } catch (error) {
       console.log(error);
@@ -170,15 +186,14 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
     // setUp webrtc
     if (!this.peerConnection) {
-      this.setup();
+      await this.setup();
     }
 
     // Document for the call
-    // const cRef = doc(this.db, "meet", "chatId");
-    // await setDoc(cRef, {});
+    const cRef = await this.db.doc("chatId");
 
     // Exchange the ICE candidates between the caller and callee
-    // this.collectIceCandidates(cRef, "caller", "callee");
+    this.collectIceCandidates(cRef, "caller", "callee");
 
     if (this.peerConnection) {
       // Create the offer for the call
@@ -205,7 +220,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
         };
 
         // cRef.set(cWithOffer)
-        // await setDoc(cRef, cWithOffer);
+        await setDoc(cRef, cWithOffer);
       } catch (error) {
         console.log("error", error);
       }
@@ -217,12 +232,11 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.connecting = true;
     this.setGettingCallCallBack?.(false);
 
-    //const cRef = firestore().collection("meet").doc("chatId")
-    // const cRef = doc(this.db, "meet", "chatId");
-    // const offer = (await cRef.get()).data()?.offer
-    // const offer = (await getDoc(cRef)).data()?.offer;
+    const cRef = await this.db.doc("chatId");
+    // const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
 
-    const offer = null;
+    const offer = (await cRef.get()).data()?.offer;
+    // const offer = (await getDoc(cRef)).data()?.offer;
 
     if (offer) {
       // Setup Webrtc
@@ -230,12 +244,11 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
       // Exchange the ICE candidates
       // Check the parameters, Its reversed. Since the joining part is callee
-      // this.collectIceCandidates(cRef, "callee", "caller");
+      this.collectIceCandidates(cRef, "callee", "caller");
 
       if (this.peerConnection) {
-        this.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(offer)
-        );
+        const offerDescription = new RTCSessionDescription(offer);
+        this.peerConnection.setRemoteDescription(offerDescription);
 
         // Create the answer for the call
         // Updates the document with answer
@@ -248,7 +261,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
           },
         };
         // cRef.update(cWithAnswer)
-        // await updateDoc(cRef, cWithAnswer);
+        await updateDoc(cRef, cWithAnswer);
       }
     }
   };
@@ -258,7 +271,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.setGettingCallCallBack?.(false);
     this.connecting = false;
     this.streamCleanUp();
-    // this.firebaseCleanUp();
+    this.firebaseCleanUp();
     if (this.peerConnection) {
       this.peerConnection.close();
       this.peerConnection = null;

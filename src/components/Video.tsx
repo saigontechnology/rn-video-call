@@ -28,7 +28,6 @@ const Video = ({
 }: VideoProps) => {
   // On call we will just display the local stream
   if (localStreamURL && !remoteStreamURL) {
-    console.log("localStream && !remoteStream");
     return (
       <View style={styles.container}>
         <VideoComponent streamURL={localStreamURL} style={styles.video} />
