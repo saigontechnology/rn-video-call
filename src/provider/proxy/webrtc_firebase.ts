@@ -1,4 +1,4 @@
-import { Base, IVideoCall } from "rn-video-call";
+import { Base, IVideoCall } from ".";
 import {
   mediaDevices,
   MediaStream,
@@ -63,7 +63,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.setRemoteStreamCallback = setRemoteStreamCallback;
     this.setGettingCallCallBack = setGettingCallCallBack;
 
-    const cRef = doc(this.db, "meets", "chatId");
+    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
     onSnapshot(cRef, async (snapshot: any) => {
       // On answer start the call
       const data = snapshot.data();
@@ -104,7 +104,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
     const candidateCollection = collection(
       this.db,
-      "meets",
+      COLLECTION_PATHS.MEETS,
       "chatId",
       localName
     );
@@ -112,7 +112,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
     if (this.peerConnection) {
       // on new ICE candidate add it to firestore
       this.peerConnection.addEventListener("icecandidate", (event) => {
-        console.log("icecandidate");
         // When you find a null candidate then there are no more candidates.
         // Gathering of candidates has finished.
         if (!event.candidate) {
@@ -125,11 +124,10 @@ class WebRTCFirbase extends Base implements IVideoCall {
       });
     }
 
-    // Get the ICE candidate added to firestore and update the local PC
+    // Get the ICE candidate added to firestore and update the local
     cRef.collection(remoteName).onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type == "added") {
-          console.log("remoteName", change.doc.data());
           const candidate = new RTCIceCandidate(change.doc.data());
           this.peerConnection?.addIceCandidate(candidate);
         }
@@ -144,6 +142,11 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.localMediaStream.getTracks().forEach((t) => t.stop());
       this.localMediaStream.release();
     }
+
+    if (this.remoteMediaStream) {
+      this.remoteMediaStream.getTracks().forEach((t) => t.stop());
+      this.remoteMediaStream.release();
+    }
     this.localMediaStream = null;
     this.remoteMediaStream = null;
 
@@ -154,7 +157,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
   firebaseCleanUp = async () => {
     console.log("firebaseCleanUp");
     // const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
-    const cRef = doc(this.db, "meets", "chatId");
+    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
     if (cRef) {
       const qee = query(collection(cRef, "callee"));
       const calleeCandidate = await getDocs(qee);
@@ -193,7 +196,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.peerConnection = new RTCPeerConnection(peerConstraints);
 
       this.peerConnection.addEventListener("track", (event) => {
-        console.log("Got remote track:", event.streams[0]);
         this.remoteMediaStream = this.remoteMediaStream || new MediaStream();
         event.track && this.remoteMediaStream.addTrack(event.track);
         this.setRemoteStreamCallback(this.remoteMediaStream);
@@ -227,7 +229,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     }
 
     // Document for the call
-    const cRef = doc(this.db, "meets", "chatId");
+    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
 
     // Exchange the ICE candidates between the caller and callee
     await this.collectIceCandidates(cRef, "caller", "callee");
@@ -270,12 +272,9 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.connecting = true;
     this.setGettingCallCallBack?.(false);
 
-    const cRef = doc(this.db, "meets", "chatId");
-    // const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
-
+    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, "chatId");
     const offer = (await cRef.get()).data()?.offer;
-    // const offer = (await getDoc(cRef)).data()?.offer;
-
+    
     if (offer) {
       // Setup Webrtc
       await this.setup();
@@ -314,6 +313,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.firebaseCleanUp();
     if (this.peerConnection) {
       this.peerConnection.close();
+      this.peerConnection = null
     }
   };
 

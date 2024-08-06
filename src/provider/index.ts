@@ -1,3 +1,2 @@
-import {VideoCallContext, useVideoCall} from './Provider'
-
-export { VideoCallContext, useVideoCall}
+export * from './Provider'
+export * from "./proxy"
