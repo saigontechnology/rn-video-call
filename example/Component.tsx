@@ -7,7 +7,6 @@ type Props = {
 };
 
 const VideoComponent = ({ streamURL, style }: Props) => {
-  console.log("VideoComponent", streamURL);
   return <RTCView streamURL={streamURL} objectFit={"cover"} style={style} />;
 };
 
