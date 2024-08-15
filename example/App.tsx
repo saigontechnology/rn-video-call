@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 
-import { VideoCallContext, AppButton, GettingCall, Video } from "rn-video-call";
+import { VideoCallContext, AppButton, GettingCall, Video, createWebRTCFirbaseProxy } from "rn-video-call";
 import {
-  createWebRTCFirbaseProxy,
-  MediaStream,
+  // createWebRTCFirbaseProxy,
+  // MediaStream,
   // VideoComponent
 } from "packages/webrtc-firebase";
 
-import VideoComponent from './Component'
+import VideoComponent from "./Component";
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import firestore, { doc, query, collection, onSnapshot } from "@react-native-firebase/firestore";
@@ -54,12 +54,12 @@ export default function App() {
 
   useEffect(() => {
     client.current.setupCallbacks(
-      async (stream:any) => {
-        console.log("setLocalStream", stream);
+      async (stream: any) => {
+        console.log("setLocalStream");
         setLocalStream(stream);
       },
       async (stream: any) => {
-        console.log("setRemoteStream", stream);
+        console.log("setRemoteStream");
         setRemoteStream(stream);
       },
       async (gettingCall: boolean) => {
@@ -69,12 +69,19 @@ export default function App() {
     );
   }, []);
 
+  const onCreate = useCallback(() => {
+    client.current.create();
+  }, []);
+  const onJoin = useCallback(() => {
+    client.current.join();
+  }, []);
+  const onHangup = useCallback(() => {
+    client.current.hangup();
+  }, []);
+
   // Displays the gettingCall Component
   if (gettingCall) {
-    console.log("gettingCall");
-    return (
-      <GettingCall hangup={client.current.hangup} join={client.current.join} />
-    );
+    return <GettingCall hangup={onHangup} join={onJoin} />;
   }
 
   // Displays local stream on calling
@@ -82,7 +89,7 @@ export default function App() {
   if (localStream) {
     return (
       <Video
-        hangup={client.current.hangup}
+        hangup={onHangup}
         localStreamURL={localStream?.toURL()}
         remoteStreamURL={remoteStream?.toURL()}
         VideoComponent={VideoComponent}
@@ -95,7 +102,7 @@ export default function App() {
       <VideoCallContext.Provider value={client.current}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.container}>
-          <AppButton backgroundColor="grey" onPress={client.current.create} />
+          <AppButton backgroundColor="grey" onPress={onCreate} />
         </View>
       </VideoCallContext.Provider>
     </SafeAreaView>

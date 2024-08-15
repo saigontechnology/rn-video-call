@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import AppButton from "./AppButton";
 
 type VideoProps = {
-  hangup: () => {};
+  hangup: () => any;
   localStreamURL?: string;
   remoteStreamURL?: string;
   VideoComponent: (props: {
