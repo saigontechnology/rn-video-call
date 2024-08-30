@@ -104,8 +104,8 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
     const candidateCollection = collection(
       this.db,
-      "meets",
-      "chatId",
+      COLLECTION_PATHS.MEETS,
+      COLLECTION_PATHS.ROOM_ID,
       localName
     );
 

@@ -6328,10 +6328,10 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
-react-native-webrtc@^124.0.3:
-  version "124.0.3"
-  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-124.0.3.tgz#8cc8ee3b56d327631aac4ddb4e40d72f3621f6da"
-  integrity sha512-uU+FxcAlBjLQ1EZnw3q+nje8xw+7hwZ7yDpSK4f1OJ25LrLA6fAjgxHCtMn9D20D9tR4+pRkBugBzkfqmboIFg==
+react-native-webrtc@^124.0.4:
+  version "124.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-124.0.4.tgz#6346e25451cb6f04432ace48b6b127499fc2d4ea"
+  integrity sha512-ZbhSz1f+kc1v5VE0B84+v6ujIWTHa2fIuocrYzGUIFab7E5izmct7PNHb9dzzs0xhBGqh4c2rUa49jbL+P/e2w==
   dependencies:
     base64-js "1.5.1"
     debug "4.3.4"

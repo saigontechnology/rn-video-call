@@ -1,5 +1,9 @@
-export type SET_LOCAL_STREAM_CALLBACK_TYPE = (stream: any) => Promise<void>;
-export type SET_REMOTE_STREAM_CALLBACK_TYPE = (stream: any) => Promise<void>;
-export type SET_GETTING_CALL_CALLBACK_TYPE = (
-  isGettingCall: boolean
-) => Promise<void>;
+export type SetUpCallbacksType = {
+    setLocalStream?: (stream: any) => void;
+    setRemoteStream?: (stream: any) => void;
+    setGettingCall?: (isGettingCall: boolean) => void;
+    setIsMuted?: (isMuted: boolean) => void;
+    setIsFrontCamera?: (isFrontCam: boolean) => void;
+    setLocalCameraEnabled?: (enabled: boolean) => void;
+    setRemoteCameraEnabled?: (enabled: boolean) => void;
+};

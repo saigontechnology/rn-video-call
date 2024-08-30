@@ -27,7 +27,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>expo.modules.rnvideocall.example</string>
+				<string>com.sts.rnvideocall</string>
 			</array>
 		</dict>
 	</array>

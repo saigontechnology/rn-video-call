@@ -431,7 +431,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = expo.modules.rnvideocall.example;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sts.rnvideocall;
 				PRODUCT_NAME = rnvideocallexample;
 				SWIFT_OBJC_BRIDGING_HEADER = "rnvideocallexample/rnvideocallexample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

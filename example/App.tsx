@@ -1,137 +1,126 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { VideoCallContext, AppButton, GettingCall, Video, createWebRTCFirbaseProxy } from "rn-video-call";
 import {
-  // createWebRTCFirbaseProxy,
-  // MediaStream,
-  // VideoComponent
-} from "packages/webrtc-firebase";
+    VideoCallContext,
+    createWebRTCFirbaseProxy,
+} from "rn-video-call";
 
-import VideoComponent from "./Component";
+
+import {Video, AppButton, GettingCall} from './components'
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import firestore, { doc, query, collection, onSnapshot } from "@react-native-firebase/firestore";
 
 export default function App() {
-  const client = useRef(createWebRTCFirbaseProxy({}));
+    const client = useRef(createWebRTCFirbaseProxy({}));
 
-  const [localStream, setLocalStream] = useState<MediaStream | null>();
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>();
-  const [gettingCall, setGettingCall] = useState(false);
-  const connecting = useRef(false);
+    const [localStream, setLocalStream] = useState<any>();
+    const [remoteStream, setRemoteStream] = useState<any>();
+    const [gettingCall, setGettingCall] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isFrontCamera, setIsFrontCamera] = useState(true);
+    const [localCameraEnabled, setLocalCameraEnabled] = useState(true);
+    const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(true);
+    const connecting = useRef(false);
 
-  useEffect(() => {
-    const cRef = firestore()
-      .collection('meets')
-      .doc("chatId");
+    useEffect(() => {
+        client.current.setupCallbacks({
+            setLocalStream,
+            setRemoteStream,
+            setGettingCall,
+            setIsMuted,
+            setIsFrontCamera,
+            setLocalCameraEnabled,
+            setRemoteCameraEnabled
+        });
+    }, []);
 
-    const subscribe = onSnapshot(cRef, (snapshot: any) => {
-      const data = snapshot.data();
+    const onCreate = useCallback(() => {
+        client.current.create();
+    }, []);
+    const onJoin = useCallback(() => {
+        client.current.join();
+    }, []);
+    const onHangup = useCallback(() => {
+        client.current.hangup();
+    }, []);
+    const onToggleIsMuted = useCallback(() => {
+        client.current.toggleActiveMicrophone();
+    }, []);
+    const onToggleIsFrontCamera = useCallback(() => {
+        client.current.switchingCamera();
+    }, []);
+    const onToggleCamera = useCallback(() => {
+      client.current.toggleCameraEnabled();
+    }, []);
 
-      // if there is offer for chatId set the getting call flag
-      if (data && data.offer && !connecting.current) {
-        setGettingCall(true);
-      }
-    });
-
-    // On Delete of collection call hangup
-    // The other side has clicked on hangup
-    const qdelete = query(collection(cRef, "callee"));
-    const subscribeDelete = onSnapshot(qdelete, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type == "removed") {
-          client.current.hangup();
-        }
-      });
-    });
-    return () => {
-      subscribe();
-      subscribeDelete();
-    };
-  }, []);
+    // remoteStream?.getTracks().forEach((track: any) => {
+    //   console.log('remoteStream', track)
+    // })
 
 
-  useEffect(() => {
-    client.current.setupCallbacks(
-      async (stream: any) => {
-        console.log("setLocalStream");
-        setLocalStream(stream);
-      },
-      async (stream: any) => {
-        console.log("setRemoteStream");
-        setRemoteStream(stream);
-      },
-      async (gettingCall: boolean) => {
-        console.log("setGettingCall", gettingCall);
-        setGettingCall(gettingCall);
-      }
-    );
-  }, []);
+    // Displays both local and remote stream once call is connected
+    if (localStream) {
+        return (
+            <Video
+                localStream={localStream}
+                remoteStream={remoteStream}
+                hangup={onHangup}
+                isMuted={isMuted}
+                isFrontCam={isFrontCamera}
+                localCameraEnabled={localCameraEnabled}
+                remoteCameraEnabled={remoteCameraEnabled}
+                toggleIsMuted={onToggleIsMuted}
+                toggleIsFrontCam={onToggleIsFrontCamera}
+                toggleCam={onToggleCamera}
+            />
+        );
+    }
 
-  const onCreate = useCallback(() => {
-    client.current.create();
-  }, []);
-  const onJoin = useCallback(() => {
-    client.current.join();
-  }, []);
-  const onHangup = useCallback(() => {
-    client.current.hangup();
-  }, []);
+    // Displays the gettingCall Component
+    if (gettingCall) {
+        return <GettingCall hangup={onHangup} join={onJoin} />;
+    }
 
-  // Displays the gettingCall Component
-  if (gettingCall) {
-    return <GettingCall hangup={onHangup} join={onJoin} />;
-  }
-
-  // Displays local stream on calling
-  // Displays both local and remote stream once call is connected
-  if (localStream) {
+    // Displays local stream on calling
     return (
-      <Video
-        hangup={onHangup}
-        localStreamURL={localStream?.toURL()}
-        remoteStreamURL={remoteStream?.toURL()}
-        VideoComponent={VideoComponent}
-      />
+        <SafeAreaView style={{ flex: 1 }}>
+            <VideoCallContext.Provider value={client.current}>
+                <StatusBar barStyle="dark-content" />
+                <View style={styles.container}>
+                    <AppButton backgroundColor="blue" onPress={onCreate}>
+                        <Ionicons name="call" color="white" size={24} />
+                    </AppButton>
+                </View>
+            </VideoCallContext.Provider>
+        </SafeAreaView>
     );
-  }
-
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <VideoCallContext.Provider value={client.current}>
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.container}>
-          <AppButton backgroundColor="grey" onPress={onCreate} />
-        </View>
-      </VideoCallContext.Provider>
-    </SafeAreaView>
-  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  body: {
-    backgroundColor: Colors.white,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-  },
-  stream: {
-    flex: 1,
-  },
-  footer: {
-    backgroundColor: Colors.lighter,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    body: {
+        backgroundColor: Colors.white,
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+    },
+    stream: {
+        flex: 1,
+    },
+    footer: {
+        backgroundColor: Colors.lighter,
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+    },
 });

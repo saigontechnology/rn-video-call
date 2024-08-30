@@ -86,7 +86,7 @@ android {
 
     namespace 'expo.modules.rnvideocall.example'
     defaultConfig {
-        applicationId 'expo.modules.rnvideocall.example'
+        applicationId 'com.sts.rnvideocall'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
