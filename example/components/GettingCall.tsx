@@ -14,7 +14,7 @@ export default function GettingCall({ join, hangup }: GettingCallProps) {
             <Image
                 source={{ uri: "https://picsum.photos/200/300" }}
                 style={styles.image}
-            ></Image>
+            />
             <View style={styles.bContainer}>
                 <AppButton
                     backgroundColor="green"

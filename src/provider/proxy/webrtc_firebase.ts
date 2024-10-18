@@ -37,6 +37,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
   private isFrontCamera = true;
   private localCameraEnabled = true;
   private cameraCount = 0;
+  private remoteCandidates: (RTCIceCandidate | null)[] = [];
 
   private setLocalStream: ((arg0: MediaStream | null) => void) | undefined;
   private setRemoteStream: ((arg0: MediaStream | null) => void) | undefined;
@@ -89,11 +90,44 @@ class WebRTCFirbase extends Base implements IVideoCall {
           await this.peerConnection.setRemoteDescription(
             new RTCSessionDescription(data.answer)
           );
+
+          this.processCandidates();
         }
 
         if (data && data.offer && !this.connecting) {
           this.setGettingCall?.(true);
-          const qdelete = query(collection(this.db, COLLECTION_PATHS.MEETS));
+          this.listenRemoteHangup()
+        }
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  };
+
+  handleRemoteCandidate = (iceCandidate) => {
+    iceCandidate = new RTCIceCandidate(iceCandidate);
+
+    if (this.peerConnection?.remoteDescription == null) {
+      return this.remoteCandidates.push(iceCandidate);
+    }
+
+    return this.peerConnection.addIceCandidate(iceCandidate);
+  };
+
+  processCandidates = () => {
+    if (this.remoteCandidates.length < 1) {
+      return;
+    }
+
+    this.remoteCandidates.map((candidate) =>
+      this.peerConnection?.addIceCandidate(candidate)
+    );
+    this.remoteCandidates = [];
+  };
+
+  listenRemoteHangup = () => {
+    const qdelete = query(collection(this.db, COLLECTION_PATHS.MEETS));
           const subscriber = qdelete.onSnapshot(
             (snapshot) => {
               snapshot.docChanges().forEach((change) => {
@@ -107,13 +141,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
               console.error(error);
             }
           );
-        }
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
-  };
+  }
 
   collectIceCandidates = async (
     cRef: FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData>,
@@ -174,10 +202,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
       (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type == "added") {
-            const candidate = new RTCIceCandidate(change.doc.data());
-            if (this.peerConnection?.remoteDescription) {
-              this.peerConnection?.addIceCandidate(candidate);
-            }
+            this.handleRemoteCandidate(change.doc.data());
           }
         });
       },
@@ -270,8 +295,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
           this.setRemoteStream?.(this.remoteMediaStream);
 
-          console.log("remoteMediaStream", this.remoteMediaStream);
-
           // this.remoteMediaStream?.getAudioTracks().forEach((track) => {
           //   track.addEventListener("mute", (e) => {
           //     console.log("remoteAudioTracks mute", e);
@@ -298,6 +321,13 @@ class WebRTCFirbase extends Base implements IVideoCall {
             });
           });
         });
+
+        this.setIsMuted?.(false);
+        this.isMuted = false;
+        this.setIsFrontCamera?.(true);
+        this.isFrontCamera = true;
+        this.setLocalCameraEnabled?.(true);
+        this.localCameraEnabled = true;
       }
     } catch (error) {
       console.log(error);
@@ -316,22 +346,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     // Document for the call
     const cRef = doc(this.db, COLLECTION_PATHS.MEETS, COLLECTION_PATHS.ROOM_ID);
 
-    // On Delete of collection call hangup
-    // The other side has clicked on hangup
-    const qdelete = query(collection(this.db, COLLECTION_PATHS.MEETS));
-    const subscriber = qdelete.onSnapshot(
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type == "removed") {
-            this.hangup();
-            subscriber();
-          }
-        });
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
+    this.listenRemoteHangup()
 
     // Exchange the ICE candidates between the caller and callee
     await this.collectIceCandidates(
@@ -407,6 +422,8 @@ class WebRTCFirbase extends Base implements IVideoCall {
           },
         };
 
+        this.processCandidates();
+
         await cRef.update(cWithAnswer);
       }
     }
@@ -422,13 +439,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.peerConnection.close();
       this.peerConnection = null;
     }
-
-   this.setIsMuted?.(false)
-   this.isMuted = false
-   this.setIsFrontCamera?.(true)
-   this.isFrontCamera = true
-   this.setLocalCameraEnabled?.(true)
-   this.localCameraEnabled = true
   };
 
   toggleActiveMicrophone = async () => {
@@ -489,7 +499,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
   getAvailableMediaDevices = async () => {
     try {
-      this.cameraCount = 0
+      this.cameraCount = 0;
       const devices: any = await mediaDevices.enumerateDevices();
 
       devices.map((device: { kind: string }) => {

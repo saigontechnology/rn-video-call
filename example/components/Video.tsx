@@ -1,8 +1,19 @@
-import React from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  StyleProp,
+  StyleSheet,
+  View,
+  Image,
+  ViewStyle,
+  Animated,
+  Dimensions,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AppButton from "./AppButton";
 import { RTCView, MediaStream } from "react-native-webrtc";
+
+const windowWidth = Dimensions.get("window").width;
+const windowHeight = Dimensions.get("window").height;
 
 type VideoProps = ButtonContainerProps & {
   hangup: () => any;
@@ -79,17 +90,33 @@ type Props = {
   zOrder?: number;
   borderWidth?: number;
   enable?: Boolean;
+  width: Animated.Value | `${number}%`;
+  height: Animated.Value | `${number}%`;
 };
 
 const VideoComponent = ({
   streamURL,
   style,
-  zOrder = 999,
+  zOrder = 2,
   borderWidth = 0,
   enable = false,
+  width = "100%",
+  height = "100%",
 }: Props) => {
   return (
-    <View style={[style, { borderColor: "gray", borderWidth }]}>
+    <Animated.View
+      style={[
+        style,
+        {
+          top: 0,
+          left: 0,
+          borderColor: "gray",
+          borderWidth,
+          width,
+          height,
+        },
+      ]}
+    >
       {enable ? (
         <RTCView
           streamURL={streamURL}
@@ -99,9 +126,14 @@ const VideoComponent = ({
           style={{ flex: 1 }}
         />
       ) : (
-        <View style={[{ backgroundColor: "black", zIndex: zOrder }]} />
+        <View style={{ flex: 1 }}>
+          <Image
+            source={{ uri: "https://picsum.photos/200/300" }}
+            style={styles.image}
+          />
+        </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -117,59 +149,61 @@ const Video = ({
   toggleIsFrontCam,
   toggleCam,
 }: VideoProps) => {
-  // On call we will just display the local stream
-  // if (localStream && !remoteStream) {
-  //   return (
-  //     <View style={styles.container}>
-  //       {/* <VideoComponent
-  //         streamURL={localStream.toURL()}
-  //         style={styles.video}
-  //         zOrder={997}
-  //         enable
-  //       /> */}
+  const widthRef = useRef(new Animated.Value(windowWidth)).current;
+  const heightRef = useRef(new Animated.Value(windowHeight)).current;
 
-  //       <ButtonContainer hangup={hangup} />
-  //     </View>
-  //   );
-  // }
-  // Once the call is connected, we will display
-  // local Stream on top of remote stream
-  // if (localStream || remoteStream) {
-  
-    return (
-      <View style={styles.container}>
-        <VideoComponent
-          streamURL={remoteStream?.toURL()}
-          style={styles.video}
-          zOrder={998}
-          enable={remoteCameraEnabled}
-        />
+  const AnimateResult = () => {
+    Animated.timing(widthRef, {
+      toValue: 100,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
 
-        <VideoComponent
-          streamURL={localStream?.toURL()}
-          style={styles.videoLocal}
-          zOrder={999}
-          borderWidth={1}
-          enable={localCameraEnabled}
-        />
+    Animated.timing(heightRef, {
+      toValue: 150,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  };
 
-        <ButtonContainer
-          {...{
-            isMuted,
-            isFrontCam,
-            localCameraEnabled,
-            hangup,
-            toggleIsMuted,
-            toggleIsFrontCam,
-            toggleCam,
-          }}
-        />
-      </View>
-    );
-  // }
+  useEffect(() => {
+    if (remoteStream) {
+      AnimateResult();
+    }
+  }, [remoteStream]);
+
   return (
-    <View>
-      <ButtonContainer hangup={hangup} />
+    <View style={styles.container}>
+      <VideoComponent
+        streamURL={remoteStream?.toURL()}
+        style={styles.video}
+        zOrder={0}
+        enable={remoteCameraEnabled}
+        width={"100%"}
+        height={"100%"}
+      />
+
+      <VideoComponent
+        streamURL={localStream?.toURL()}
+        style={styles.video}
+        zOrder={1}
+        borderWidth={1}
+        enable={localCameraEnabled}
+        width={widthRef}
+        height={heightRef}
+      />
+
+      <ButtonContainer
+        {...{
+          isMuted,
+          isFrontCam,
+          localCameraEnabled,
+          hangup,
+          toggleIsMuted,
+          toggleIsFrontCam,
+          toggleCam,
+        }}
+      />
     </View>
   );
 };
@@ -196,6 +230,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 20,
     elevation: 10,
+  },
+  image: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
 });
 
