@@ -13,14 +13,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.rnvideocall.example"
+      "bundleIdentifier": "com.sts.rnvideocall"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "expo.modules.rnvideocall.example"
+      "package": "com.sts.rnvideocall"
     },
     "web": {
       "favicon": "./assets/favicon.png"
