@@ -13,7 +13,10 @@
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "open:android": "open -a \"Android Studio\" example/android",
+    "start": "cd example && yarn start",
+    "android": "cd example && yarn android",
+    "ios": "cd example && yarn ios"
   },
   "keywords": [
     "react-native",
@@ -32,18 +35,25 @@
     "react-native-webrtc": "^124.0.4"
   },
   "devDependencies": {
-    "@types/react": "^18.0.25",
+    "@react-native-firebase/firestore": "^21.2.0",
+    "@types/react": "~18.2.45",
+    "@types/react-native": "^0.73.0",
+    "expo-image": "^1.13.0",
     "expo-module-scripts": "^3.5.2",
     "expo-modules-core": "^1.12.17",
-    "react-native": "0.74.2",
-    "react-native-webrtc": "^124.0.4",
-    "@react-native-firebase/app": "^20.3.0",
-    "@react-native-firebase/firestore": "^20.3.0"
+    "react-native-safe-area-context": "^4.11.1",
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-webrtc": "^124.0.4"
   },
   "peerDependencies": {
+    "@expo/vector-icons": "*",
+    "@react-native-firebase/firestore": "*",
     "expo": "*",
+    "expo-image": "*",
     "react": "*",
     "react-native": "*",
+    "react-native-safe-area-context": "*",
+    "react-native-vector-icons": "*",
     "react-native-webrtc": "*"
   }
 }
