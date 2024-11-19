@@ -18,7 +18,7 @@ For bare React Native projects, you must ensure that you have [installed and con
 ### Add the package to your npm dependencies
 
 ```
-npm install rn-video-call
+npm install @rn-video-call/base @rn-video-call/webrtc @react-native-firebase/app @react-native-firebase/firestore react-native-web react-native-webrtc
 ```
 
 ### Configure for iOS
@@ -78,6 +78,26 @@ App()
 
 // Implement
 const {setUp, join} = useVideoCallProvider()
+
+### Example Usage
+##### Implementing WebRTC proxy
+
+On Root App file (e.g. `App.tsx`), wrap app with `VideoCallContext`
+```js
+import { VideoCallContext } from "@rn-video-call/base";
+import { getWebRTCFirbaseProxyInstance } from "@rn-video-call/webrtc";
+
+export default function App() {
+  const client = useRef(getWebRTCFirbaseProxyInstance({}));
+  ...
+
+  return (
+    <VideoCallContext.Provider value={client.current}>
+      ...
+    </VideoCallContext.Provider>
+  )
+}
+```
 
 # Contributing
 

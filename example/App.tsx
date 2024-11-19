@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import { VideoCallContext, createWebRTCFirbaseProxy } from "rn-video-call";
+import { VideoCallContext } from "@rn-video-call/base";
+import { getWebRTCFirbaseProxyInstance } from "@rn-video-call/webrtc"
 
 import { Video, AppButton, GettingCall } from "./components";
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
 export default function App() {
-  const client = useRef(createWebRTCFirbaseProxy({}));
+  const client = useRef(getWebRTCFirbaseProxyInstance({}));
 
   const [localStream, setLocalStream] = useState<any>();
   const [remoteStream, setRemoteStream] = useState<any>();

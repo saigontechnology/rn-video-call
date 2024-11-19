@@ -1,6 +1,6 @@
-# webrtc-firebase
+# @rn-video-call/webrtc
 
-A third-party for rn-video-call
+A third-party for rn-video-call using WebRTC and Firebase
 
 # API documentation
 
@@ -18,11 +18,8 @@ For bare React Native projects, you must ensure that you have [installed and con
 ### Add the package to your npm dependencies
 
 ```
-npm install webrtc-firebase
+npm install @rn-video-call/webrtc
 ```
-
-
-
 
 # Contributing
 

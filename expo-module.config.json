@@ -1,9 +1,0 @@
-{
-  "platforms": ["ios", "tvos", "android", "web"],
-  "ios": {
-    "modules": ["RnVideoCallModule"]
-  },
-  "android": {
-    "modules": ["expo.modules.rnvideocall.RnVideoCallModule"]
-  }
-}

@@ -156,8 +156,8 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				B2BF690DB7BBBC4EEE44BA4C /* [CP] Embed Pods Frameworks */,
 				14E3A479CCEACFA24F4CFCA1 /* [CP-User] [RNFB] Core Configuration */,
+				F66764F227E739E4BF39CC44 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -334,7 +334,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-rnvideocallexample/Pods-rnvideocallexample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B2BF690DB7BBBC4EEE44BA4C /* [CP] Embed Pods Frameworks */ = {
+		F66764F227E739E4BF39CC44 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
