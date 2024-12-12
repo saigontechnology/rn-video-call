@@ -24,6 +24,8 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "expo-module-scripts": "^3.5.2",
+    "expo-modules-core": "^1.12.17"
   }
 }
