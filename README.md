@@ -18,7 +18,7 @@ For bare React Native projects, you must ensure that you have [installed and con
 ### Add the package to your npm dependencies
 
 ```
-npm install @rn-video-call/base @rn-video-call/webrtc @react-native-firebase/app @react-native-firebase/firestore react-native-web react-native-webrtc
+npm install @rn-video-call/base @rn-video-call/webrtc @react-native-firebase/app
 ```
 
 ### Configure for iOS

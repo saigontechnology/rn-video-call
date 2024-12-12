@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-firebase/app": "^20.3.0",
     "@rn-video-call/base": "*",
     "@rn-video-call/webrtc": "*",
     "expo": "~51.0.17",
