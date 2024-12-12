@@ -1,5 +1,5 @@
 {
-  "name": "@rn-video-call/webrtc",
+  "name": "@rn-video-call/webrtc_firebase",
   "version": "0.0.1",
   "description": "A third-party for rn-video-call using WebRTC and Firebase",
   "main": "build/index.js",

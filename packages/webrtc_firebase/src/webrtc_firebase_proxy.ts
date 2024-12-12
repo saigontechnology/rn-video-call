@@ -15,9 +15,9 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 
-import type { IVideoCall } from "@rn-video-call/base";
-import { Base, COLLECTION_PATHS } from "@rn-video-call/base";
-import { SetUpCallbacksType } from "./webrtcFirebase.types";
+import type {IVideoCall} from "@rn-video-call/base";
+import {Base, COLLECTION_PATHS} from "@rn-video-call/base";
+import {SetUpCallbacksType, SetUpInCallPropertiesType} from "./webrtcFirebase.types";
 
 export const peerConstraints = {
   iceServers: [
@@ -54,26 +54,26 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.db = firestore();
   }
 
-  setupFirebase = (db: any) => {
-    this.db = db;
-  };
+  setupInCallProperties = ({
+    setIsMuted,
+    setIsFrontCamera,
+    setLocalCameraEnabled,
+    setRemoteCameraEnabled,
+  }: SetUpInCallPropertiesType) => {
+    this.setIsMuted = setIsMuted;
+    this.setIsFrontCamera = setIsFrontCamera;
+    this.setLocalCameraEnabled = setLocalCameraEnabled;
+    this.setRemoteCameraEnabled = setRemoteCameraEnabled;
+  }
 
   setupCallbacks = ({
     setLocalStream,
     setRemoteStream,
     setGettingCall,
-    setIsMuted,
-    setIsFrontCamera,
-    setLocalCameraEnabled,
-    setRemoteCameraEnabled,
   }: SetUpCallbacksType) => {
     this.setLocalStream = setLocalStream;
     this.setRemoteStream = setRemoteStream;
     this.setGettingCall = setGettingCall;
-    this.setIsMuted = setIsMuted;
-    this.setIsFrontCamera = setIsFrontCamera;
-    this.setLocalCameraEnabled = setLocalCameraEnabled;
-    this.setRemoteCameraEnabled = setRemoteCameraEnabled;
 
     const cRef = this.db
       .collection(COLLECTION_PATHS.MEETS)
@@ -130,19 +130,19 @@ class WebRTCFirbase extends Base implements IVideoCall {
 
   listenRemoteHangup = () => {
     const qdelete = query(collection(this.db, COLLECTION_PATHS.MEETS));
-          const subscriber = qdelete.onSnapshot(
-            (snapshot) => {
-              snapshot.docChanges().forEach((change) => {
-                if (change.type == "removed") {
-                  this.hangup();
-                  subscriber();
-                }
-              });
-            },
-            (error) => {
-              console.error(error);
-            }
-          );
+    const subscriber = qdelete.onSnapshot(
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type == "removed") {
+            this.hangup();
+            subscriber();
+          }
+        });
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 
   collectIceCandidates = async (
@@ -504,7 +504,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.cameraCount = 0;
       const devices: any = await mediaDevices.enumerateDevices();
 
-      devices.map((device: { kind: string }) => {
+      devices.map((device: {kind: string}) => {
         if (device.kind != "videoinput") {
           return;
         }
@@ -514,10 +514,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
     } catch (err) {
       console.log(err);
     }
-  };
-
-  cleanUp = async () => {
-    console.log("cleanUp");
   };
 
   getStream = async () => {
@@ -547,15 +543,12 @@ class WebRTCFirbase extends Base implements IVideoCall {
 }
 
 export const getWebRTCFirbaseProxyInstance = (props = {}) => {
-  if (webRTCFirbaseInstance) {
-    return webRTCFirbaseInstance;
+  if (!webRTCFirbaseInstance) {
+    webRTCFirbaseInstance = createWebRTCFirbaseProxy(props);
   }
-  webRTCFirbaseInstance = createWebRTCFirbaseProxy(props);
   return webRTCFirbaseInstance;
 }
 
-export const createWebRTCFirbaseProxy = ({}) => {
+export const createWebRTCFirbaseProxy = ({ }) => {
   return new WebRTCFirbase();
 };
-
-export { MediaStream };

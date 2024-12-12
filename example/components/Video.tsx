@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -11,33 +11,32 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AppButton from "./AppButton";
 import { RTCView, MediaStream } from "react-native-webrtc";
+import { getWebRTCFirbaseProxyInstance } from "@rn-video-call/webrtc_firebase";
 
 const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
 
-type VideoProps = ButtonContainerProps & {
-  hangup: () => any;
+interface VideoProps {
   localStream?: MediaStream;
   remoteStream?: MediaStream;
-};
+}
 
-type ButtonContainerProps = {
+interface ButtonContainerProps extends VideoProps {
   isMuted?: boolean;
-  isFrontCam?: boolean;
+  isFrontCamera?: boolean;
   localCameraEnabled?: boolean;
   remoteCameraEnabled?: boolean;
-
   hangup?: () => void;
   toggleIsMuted?: () => void;
   toggleIsFrontCam?: () => void;
   toggleCam?: () => void;
-};
+}
 
 const ButtonContainer = ({
   isMuted,
-  isFrontCam,
+  isFrontCamera,
   localCameraEnabled,
-
+  remoteCameraEnabled,
   hangup,
   toggleIsMuted,
   toggleIsFrontCam,
@@ -48,7 +47,7 @@ const ButtonContainer = ({
       {!!toggleIsFrontCam && (
         <AppButton backgroundColor="black" onPress={toggleIsFrontCam}>
           <Ionicons
-            name={isFrontCam ? "camera-reverse" : "camera"}
+            name={isFrontCamera ? "camera-reverse" : "camera"}
             size={24}
             color={"white"}
           />
@@ -138,19 +137,39 @@ const VideoComponent = ({
 };
 
 const Video = ({
-  hangup,
   localStream,
   remoteStream,
-  isMuted,
-  isFrontCam,
-  localCameraEnabled,
-  remoteCameraEnabled,
-  toggleIsMuted,
-  toggleIsFrontCam,
-  toggleCam,
 }: VideoProps) => {
+  const client = useRef(getWebRTCFirbaseProxyInstance({}));
   const widthRef = useRef(new Animated.Value(windowWidth)).current;
   const heightRef = useRef(new Animated.Value(windowHeight)).current;
+
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFrontCamera, setIsFrontCamera] = useState(true);
+  const [localCameraEnabled, setLocalCameraEnabled] = useState(true);
+  const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(true);
+
+  useEffect(() => {
+    client.current.setupInCallProperties({
+      setIsMuted,
+      setIsFrontCamera,
+      setLocalCameraEnabled,
+      setRemoteCameraEnabled,
+    });
+  }, []);
+
+  const hangup = useCallback(() => {
+    client.current?.hangup();
+  }, []);
+  const toggleIsMuted = useCallback(() => {
+    client.current?.toggleActiveMicrophone();
+  }, []);
+  const toggleIsFrontCam = useCallback(() => {
+    client.current?.switchingCamera();
+  }, []);
+  const toggleCam = useCallback(() => {
+    client.current?.toggleCameraEnabled();
+  }, []);
 
   const AnimateResult = () => {
     Animated.timing(widthRef, {
@@ -196,7 +215,7 @@ const Video = ({
       <ButtonContainer
         {...{
           isMuted,
-          isFrontCam,
+          isFrontCamera,
           localCameraEnabled,
           hangup,
           toggleIsMuted,
