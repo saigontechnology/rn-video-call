@@ -21,13 +21,63 @@ For bare React Native projects, you must ensure that you have [installed and con
 npm install @rn-video-call/base @rn-video-call/webrtc @react-native-firebase/app
 ```
 
+Configure for Firebase as described in [Firebase Getting Started](https://rnfirebase.io)
+
 ### Configure for iOS
+
+Adding configure for pod in Podfile
+```
+pod 'RNFBFirestore', :path => '../node_modules/@react-native-firebase/firestore/'
+pod 'react-native-webrtc', :path => '../node_modules/react-native-webrtc/'
+```
 
 Run `npx pod-install` after installing the npm package.
 
 
 ### Configure for Android
 
+Adding configure for settings.gradle of project (in `android/settings.gradle`)
+```
+include ':@react-native-firebase_firestore'
+project(':@react-native-firebase_firestore').projectDir = new File(rootProject.projectDir, './../node_modules/@react-native-firebase/firestore/android')
+include ':react-native-webrtc'
+project(':react-native-webrtc').projectDir = new File(rootProject.projectDir, './../node_modules/react-native-webrtc/android')
+```
+
+Adding configure for build.gradlew of app (in `android/app/build.gradle`)
+```
+dependencies {
+  ...
+  implementation project(path: ":@react-native-firebase_firestore")
+  implementation project(path: ":react-native-webrtc")
+  ...
+}
+```
+
+Adding native Package Module in app MainApplication.kt
+``` kt
+... // Other packages
+
+import io.invertase.firebase.firestore.ReactNativeFirebaseFirestorePackage;
+import com.oney.WebRTCModule.WebRTCModulePackage;
+
+class MainApplication : Application(), ReactApplication {
+  override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
+    this,
+    object : DefaultReactNativeHost(this) {
+      override fun getPackages(): List<ReactPackage> {
+        return PackageList(this).packages.apply {
+          // Packages that cannot be autolinked yet can be added manually here, for example:
+          // add(MyReactNativePackage())
+          add(ReactNativeFirebaseFirestorePackage());
+          add(WebRTCModulePackage());
+        }
+      }
+    }
+  )
+  ... // Remaining codes
+}
+```
 
 #  Usaged
 
