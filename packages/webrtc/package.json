@@ -1,8 +1,9 @@
 {
-  "name": "webrtc-firebase",
-  "version": "1.0.0",
-  "description": "A third-party for rn-video-call",
-  "main": "index.js",
+  "name": "@rn-video-call/webrtc",
+  "version": "0.0.1",
+  "description": "A third-party for rn-video-call using WebRTC and Firebase",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "author": "thinh.vo",
   "license": "MIT",
   "scripts": {
@@ -16,17 +17,19 @@
   },
   "dependencies": {
     "@react-native-firebase/firestore": "^20.3.0",
-    "expo": "~51.0.17",
-    "expo-module-scripts": "^3.5.2",
-    "expo-modules-core": "^1.12.17",
-    "react": "18.2.0",
-    "react-native": "0.74.2",
+    "@rn-video-call/base": "*",
     "react-native-web": "~0.18.7",
     "react-native-webrtc": "^124.0.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
+    "@babel/core": "^7.20.0",    
     "@types/react": "~18.2.45",
     "typescript": "^5.1.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "expo-module-scripts": "*",
+    "expo-modules-core": "*"
   }
 }

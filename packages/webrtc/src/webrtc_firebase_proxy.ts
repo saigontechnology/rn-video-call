@@ -1,4 +1,3 @@
-import { Base, IVideoCall } from ".";
 import {
   mediaDevices,
   MediaStream,
@@ -16,7 +15,8 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 
-import { COLLECTION_PATHS } from "./constants";
+import type { IVideoCall } from "@rn-video-call/base";
+import { Base, COLLECTION_PATHS } from "@rn-video-call/base";
 import { SetUpCallbacksType } from "./webrtcFirebase.types";
 
 export const peerConstraints = {
@@ -26,6 +26,8 @@ export const peerConstraints = {
     },
   ],
 };
+
+let webRTCFirbaseInstance: WebRTCFirbase
 
 class WebRTCFirbase extends Base implements IVideoCall {
   peerConnection: RTCPeerConnection | null = null;
@@ -105,7 +107,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     );
   };
 
-  handleRemoteCandidate = (iceCandidate) => {
+  handleRemoteCandidate = (iceCandidate: any) => {
     iceCandidate = new RTCIceCandidate(iceCandidate);
 
     if (this.peerConnection?.remoteDescription == null) {
@@ -542,6 +544,14 @@ class WebRTCFirbase extends Base implements IVideoCall {
       return null;
     }
   };
+}
+
+export const getWebRTCFirbaseProxyInstance = (props = {}) => {
+  if (webRTCFirbaseInstance) {
+    return webRTCFirbaseInstance;
+  }
+  webRTCFirbaseInstance = createWebRTCFirbaseProxy(props);
+  return webRTCFirbaseInstance;
 }
 
 export const createWebRTCFirbaseProxy = ({}) => {

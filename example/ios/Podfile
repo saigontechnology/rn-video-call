@@ -32,6 +32,9 @@ target 'rnvideocallexample' do
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
+  pod 'RNFBFirestore', :path => '../node_modules/@react-native-firebase/firestore/'
+  pod 'react-native-webrtc', :path => '../node_modules/react-native-webrtc/'
+
   post_install do |installer|
     react_native_post_install(
       installer,

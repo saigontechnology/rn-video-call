@@ -1,0 +1,30 @@
+{
+  "name": "@rn-video-call/base",
+  "version": "0.0.1",
+  "description": "Base source for rn-video-call",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "author": "thinh.vo",
+  "license": "MIT",
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "expo-module lint",
+    "test": "expo-module test",
+    "prepare": "expo-module prepare",
+    "prepublishOnly": "expo-module prepublishOnly",
+    "expo-module": "expo-module"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "expo-module-scripts": "^3.5.2",
+    "expo-modules-core": "^1.12.17",
+    "react-native": "0.74.2",
+    "typescript": "^5.1.3"
+  },
+  "peerDependencies": {
+    "react": ">= 18.2.0",
+    "react-native": "*"
+  }
+}

@@ -1,6 +1,6 @@
-import React, { Context, createContext, useContext } from "react";
-import { Base } from "./proxy/base";
-import { IVideoCall } from "./proxy/video-call-methods-interface";
+import React, {createContext, useContext} from "react";
+import {Base} from "./base";
+import {IVideoCall} from "./methods";
 
 export const VideoCallContext = createContext<Base | null>(null);
 

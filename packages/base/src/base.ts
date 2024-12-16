@@ -1,4 +1,4 @@
-import { IVideoCall } from "./video-call-methods-interface";
+import {IVideoCall} from "./methods";
 
 export class Base implements IVideoCall {
   constructor(parameters: any) {}

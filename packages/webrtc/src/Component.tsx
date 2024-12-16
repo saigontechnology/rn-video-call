@@ -1,5 +1,6 @@
+import React from "react";
 import { RTCView } from "react-native-webrtc";
-import { StyleProp, ViewStyle } from "react-native/types";
+import { StyleProp, ViewStyle } from "react-native";
 
 type Props = {
   streamURL?: string;
