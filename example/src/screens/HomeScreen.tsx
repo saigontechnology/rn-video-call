@@ -3,16 +3,25 @@ import { StyleSheet, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { AppButton, GettingCall, Video } from "../../components";
 import {
-  getWebRTCFirbaseProxyInstance,
+  WebRTCFirbase,
   useVideoCallContext,
 } from "@rn-video-call/webrtc_firebase";
 
+const WebRTCFirbaseService = WebRTCFirbase.getInstance()
+
 export const HomeScreen: React.FC = () => {
-  const client = useRef(getWebRTCFirbaseProxyInstance({}));
   const { videoCallState } = useVideoCallContext();
 
   const onCreate = useCallback(() => {
-    client.current.create();
+    WebRTCFirbaseService?.create();
+  }, []);
+
+  const onJoin = useCallback(() => {
+    WebRTCFirbaseService?.join();
+  }, []);
+
+  const onHangup = useCallback(() => {
+    WebRTCFirbaseService?.hangup();
   }, []);
 
   // Displays both local and remote stream once call is connected
@@ -27,7 +36,7 @@ export const HomeScreen: React.FC = () => {
 
   // Displays the gettingCall Component
   if (videoCallState?.gettingCall) {
-    return <GettingCall />;
+    return <GettingCall join={onJoin} hangup={onHangup} />;
   }
   return (
     <View style={styles.container}>

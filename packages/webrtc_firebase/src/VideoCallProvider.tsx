@@ -5,7 +5,6 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-// import { FirestoreServices, createUserProfile } from "../services/firebase";
 import type { IVideoCallContext } from "./interfaces";
 import {
   setGettingCall,
@@ -13,51 +12,34 @@ import {
   setRemoteStream,
   videoCallReducer,
 } from "./reducer";
-import { getWebRTCFirbaseProxyInstance } from "./webrtc_firebase_proxy";
+import { WebRTCFirbase } from "./webrtc_firebase_proxy";
+import { useUserContext } from "@rn-video-call/firebase_user";
 
-// const firestoreServices = FirestoreServices.getInstance();
+const WebRTCFirbaseService = WebRTCFirbase.getInstance()
 
-interface VideoCallProviderProps
-  extends PropsWithChildren,
-    Omit<IVideoCallContext, "videoCallState" | "videoCallDispatch"> {}
+interface VideoCallProviderProps extends PropsWithChildren {}
 
 export const VideoCallContext = createContext<IVideoCallContext>(
   {} as IVideoCallContext
 );
 
 export const VideoCallProvider: React.FC<VideoCallProviderProps> = ({
-  userInfo,
   children,
 }) => {
-  const client = useRef(getWebRTCFirbaseProxyInstance({}));
+  const { userState } = useUserContext();
   const [state, dispatch] = useReducer(videoCallReducer, {});
 
-  useEffect(() => {
-    client.current.setupCallbacks({
-      setLocalStream: (stream) => dispatch(setLocalStream(stream)),
-      setRemoteStream: (stream) => dispatch(setRemoteStream(stream)),
-      setGettingCall: (isCalling) => dispatch(setGettingCall(isCalling)),
-    });
-  }, []);
+  const userInfo = userState?.userInfo || null
 
   useEffect(() => {
-    let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      // firestoreServices.configuration({ userInfo });
-      // createUserProfile(userInfo.id, userInfo.name).then(() => {
-      //   firestoreServices.getListConversation().then((res) => {
-      //     dispatch(setListConversation(res));
-      //   });
-      //   unsubscribeListener = firestoreServices.listenConversationUpdate(
-      //     (data) => {
-      //       dispatch(updateConversation(data));
-      //     }
-      //   );
-      // });
+      WebRTCFirbaseService.setupCallbacks({
+        userInfo,
+        setLocalStream: (stream) => dispatch(setLocalStream(stream)),
+        setRemoteStream: (stream) => dispatch(setRemoteStream(stream)),
+        setGettingCall: (isCalling) => dispatch(setGettingCall(isCalling)),
+      });
     }
-    return () => {
-      unsubscribeListener();
-    };
   }, [userInfo]);
 
   return (

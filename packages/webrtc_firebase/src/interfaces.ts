@@ -1,13 +1,9 @@
 import {Dispatch} from "react";
 import {VideoCallActionTypes, VideoCallState} from "./reducer";
-export interface IUserInfo {
-  id: string;
-  name: string;
-  avatar: string;
-}
+import {IUserInfo} from "@rn-video-call/firebase_user";
 
 export type IVideoCallContext = {
-  userInfo: IUserInfo | null;
+  userInfo: IUserInfo
   videoCallState: VideoCallState;
   videoCallDispatch: Dispatch<VideoCallActionTypes>;
 }

@@ -1,9 +1,11 @@
+import {IUserInfo} from "@rn-video-call/firebase_user";
 import {MediaStream} from "react-native-webrtc";
 
-export type SetUpCallbacksType = {
-  setLocalStream?: (stream: MediaStream | null) => void;
-  setRemoteStream?: (stream: MediaStream | null) => void;
-  setGettingCall?: (isGettingCall: boolean) => void;
+export type SetUpUserCallbacksType = {
+  userInfo: IUserInfo
+  setLocalStream: (stream?: MediaStream) => void;
+  setRemoteStream: (stream?: MediaStream) => void;
+  setGettingCall: (isGettingCall: boolean) => void;
 };
 
 export type SetUpInCallPropertiesType = {

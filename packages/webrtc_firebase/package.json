@@ -16,13 +16,14 @@
     "expo-module": "expo-module"
   },
   "dependencies": {
-    "@react-native-firebase/firestore": "^20.3.0",
     "@rn-video-call/base": "*",
+    "@rn-video-call/firebase_user": "*",
     "react-native-web": "~0.18.7",
     "react-native-webrtc": "^124.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",    
+    "@react-native-firebase/firestore": "^20.5.0",
     "@types/react": "~18.2.45",
     "typescript": "^5.1.3"
   },

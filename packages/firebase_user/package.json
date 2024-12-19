@@ -1,10 +1,10 @@
 {
-  "name": "@rn-video-call/base",
+  "name": "@rn-video-call/firebase_user",
   "version": "0.0.1",
-  "description": "Base source for rn-video-call",
+  "description": "A third-party for rn-video-call for managing user based on Firebase service",
   "main": "build/index.js",
   "types": "build/index.d.ts",
-  "author": "thinh.vo",
+  "author": "loc.nguyent",
   "license": "MIT",
   "scripts": {
     "build": "expo-module build",
@@ -15,10 +15,22 @@
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module"
   },
+  "dependencies": {
+    "@react-native-firebase/app": "^20.5.0",
+    "@react-native-firebase/firestore": "^20.5.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
     "expo-module-scripts": "^3.5.2",
     "expo-modules-core": "^1.12.17",
+    "react-native": "0.74.2",
     "typescript": "^5.1.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "expo-module-scripts": "*",
+    "expo-modules-core": "*"
   }
 }

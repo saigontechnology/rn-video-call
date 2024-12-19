@@ -11,7 +11,9 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AppButton from "./AppButton";
 import { RTCView, MediaStream } from "react-native-webrtc";
-import { getWebRTCFirbaseProxyInstance } from "@rn-video-call/webrtc_firebase";
+import { WebRTCFirbase } from "@rn-video-call/webrtc_firebase";
+
+const WebRTCFirbaseService = WebRTCFirbase.getInstance()
 
 const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
@@ -140,7 +142,6 @@ const Video = ({
   localStream,
   remoteStream,
 }: VideoProps) => {
-  const client = useRef(getWebRTCFirbaseProxyInstance({}));
   const widthRef = useRef(new Animated.Value(windowWidth)).current;
   const heightRef = useRef(new Animated.Value(windowHeight)).current;
 
@@ -150,7 +151,7 @@ const Video = ({
   const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(true);
 
   useEffect(() => {
-    client.current.setupInCallProperties({
+    WebRTCFirbaseService.setupInCallProperties({
       setIsMuted,
       setIsFrontCamera,
       setLocalCameraEnabled,
@@ -159,16 +160,16 @@ const Video = ({
   }, []);
 
   const hangup = useCallback(() => {
-    client.current?.hangup();
+    WebRTCFirbaseService?.hangup();
   }, []);
   const toggleIsMuted = useCallback(() => {
-    client.current?.toggleActiveMicrophone();
+    WebRTCFirbaseService?.toggleActiveMicrophone();
   }, []);
   const toggleIsFrontCam = useCallback(() => {
-    client.current?.switchingCamera();
+    WebRTCFirbaseService?.switchingCamera();
   }, []);
   const toggleCam = useCallback(() => {
-    client.current?.toggleCameraEnabled();
+    WebRTCFirbaseService?.toggleCameraEnabled();
   }, []);
 
   const AnimateResult = () => {

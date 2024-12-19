@@ -6,12 +6,12 @@ export const setGettingCall = (payload: boolean) => ({
   payload,
 } as const);
 
-export const setLocalStream = (payload: MediaStream | null) => ({
+export const setLocalStream = (payload?: MediaStream) => ({
   type: VideoCallActionKind.SET_LOCAL_STREAM,
   payload,
 } as const);
 
-export const setRemoteStream = (payload: MediaStream | null) => ({
+export const setRemoteStream = (payload?: MediaStream) => ({
   type: VideoCallActionKind.SET_REMOTE_STREAM,
   payload,
 } as const);

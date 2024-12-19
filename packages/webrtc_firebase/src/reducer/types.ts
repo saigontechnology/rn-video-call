@@ -3,8 +3,8 @@ import * as videoCallActions from './action'
 
 export type VideoCallState = {
 	gettingCall?: boolean;
-	localStream?: MediaStream | null;
-	remoteStream?: MediaStream | null;
+	localStream?: MediaStream;
+	remoteStream?: MediaStream;
 };
 
 type VideoCallActionKeys = keyof typeof videoCallActions

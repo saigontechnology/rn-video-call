@@ -7,17 +7,14 @@ import {
 } from "react-native-webrtc";
 import firestore, {
   query,
-  doc,
-  setDoc,
-  getDocs,
-  deleteDoc,
   collection,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 
 import type {IVideoCall} from "@rn-video-call/base";
 import {Base, COLLECTION_PATHS} from "@rn-video-call/base";
-import {SetUpCallbacksType, SetUpInCallPropertiesType} from "./webrtcFirebase.types";
+import {SetUpUserCallbacksType, SetUpInCallPropertiesType} from "./webrtcFirebase.types";
+import {FireStoreCollection, IUserInfo} from "@rn-video-call/firebase_user";
 
 export const peerConstraints = {
   iceServers: [
@@ -27,12 +24,14 @@ export const peerConstraints = {
   ],
 };
 
-let webRTCFirbaseInstance: WebRTCFirbase
+export class WebRTCFirbase extends Base implements IVideoCall {
+  private static instance: WebRTCFirbase;
 
-class WebRTCFirbase extends Base implements IVideoCall {
   peerConnection: RTCPeerConnection | null = null;
   private connecting = false;
   private db: FirebaseFirestoreTypes.Module;
+  private meetId?: string;
+  private userInfo: IUserInfo = null;
   private localMediaStream: MediaStream | null = null;
   private remoteMediaStream: MediaStream | null = null;
   private isMuted = false;
@@ -41,9 +40,10 @@ class WebRTCFirbase extends Base implements IVideoCall {
   private cameraCount = 0;
   private remoteCandidates: (RTCIceCandidate | null)[] = [];
 
-  private setLocalStream: ((arg0: MediaStream | null) => void) | undefined;
-  private setRemoteStream: ((arg0: MediaStream | null) => void) | undefined;
+  private setLocalStream: ((arg0?: MediaStream) => void) | undefined;
+  private setRemoteStream: ((arg0?: MediaStream) => void) | undefined;
   private setGettingCall: ((isGettingCall: boolean) => void) | undefined;
+
   private setIsMuted: ((isMuted: boolean) => void) | undefined;
   private setIsFrontCamera: ((isFrontCamera: boolean) => void) | undefined;
   private setLocalCameraEnabled: ((enabled: boolean) => void) | undefined;
@@ -53,6 +53,25 @@ class WebRTCFirbase extends Base implements IVideoCall {
     super({});
     this.db = firestore();
   }
+
+  static getInstance = () => {
+    if (!WebRTCFirbase.instance) {
+      WebRTCFirbase.instance = new WebRTCFirbase();
+    }
+    return WebRTCFirbase.instance;
+  };
+
+  getConnecting = async () => {
+    return this.connecting;
+  };
+
+  getPeerConnection = () => {
+    return this.peerConnection;
+  };
+
+  getMeetId = () => {
+    return this.meetId;
+  };
 
   setupInCallProperties = ({
     setIsMuted,
@@ -67,44 +86,89 @@ class WebRTCFirbase extends Base implements IVideoCall {
   }
 
   setupCallbacks = ({
+    userInfo,
     setLocalStream,
     setRemoteStream,
     setGettingCall,
-  }: SetUpCallbacksType) => {
+  }: SetUpUserCallbacksType) => {
     this.setLocalStream = setLocalStream;
     this.setRemoteStream = setRemoteStream;
     this.setGettingCall = setGettingCall;
+    this.userInfo = userInfo;
 
-    const cRef = this.db
-      .collection(COLLECTION_PATHS.MEETS)
-      .doc(COLLECTION_PATHS.ROOM_ID);
+    if (userInfo?.id) {
+      const cRef = this.db
+        .collection(FireStoreCollection.users)
+        .doc(userInfo.id);
+      cRef.onSnapshot({
+        next: async (snapshot: any) => {
+          // On answer start the call
+          const data = snapshot.data();
+          if (
+            this.peerConnection &&
+            !this.peerConnection.remoteDescription &&
+            data &&
+            data.answer
+          ) {
+            await this.peerConnection.setRemoteDescription(
+              new RTCSessionDescription(data.answer)
+            );
 
-    cRef.onSnapshot(
-      async (snapshot: any) => {
-        // On answer start the call
-        const data = snapshot.data();
-        if (
-          this.peerConnection &&
-          !this.peerConnection.remoteDescription &&
-          data &&
-          data.answer
-        ) {
-          await this.peerConnection.setRemoteDescription(
-            new RTCSessionDescription(data.answer)
-          );
+            this.processCandidates();
+          }
 
-          this.processCandidates();
+          if (data && data.offer && !this.connecting) {
+            this.setGettingCall?.(true);
+            this.listenRemoteHangup()
+          }
+        },
+        error: (error) => {
+          console.error(error);
+        },
+      })
+    }
+  };
+
+  getAvailableMediaDevices = async () => {
+    try {
+      this.cameraCount = 0;
+      const devices: any = await mediaDevices.enumerateDevices();
+
+      devices.map((device: {kind: string}) => {
+        if (device.kind != "videoinput") {
+          return;
         }
 
-        if (data && data.offer && !this.connecting) {
-          this.setGettingCall?.(true);
-          this.listenRemoteHangup()
-        }
+        this.cameraCount = this.cameraCount + 1;
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  getStream = async () => {
+    let mediaConstraints = {
+      audio: true,
+      video: {
+        frameRate: 30,
+        facingMode: "user",
       },
-      (error) => {
-        console.error(error);
+    };
+
+    let isVoiceOnly = false;
+    try {
+      const mediaStream = await mediaDevices.getUserMedia(mediaConstraints);
+
+      if (isVoiceOnly) {
+        let videoTrack = mediaStream.getVideoTracks()[0];
+        videoTrack.enabled = false;
       }
-    );
+
+      return mediaStream;
+    } catch (err) {
+      console.log("err", err);
+      return null;
+    }
   };
 
   handleRemoteCandidate = (iceCandidate: any) => {
@@ -129,7 +193,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
   };
 
   listenRemoteHangup = () => {
-    const qdelete = query(collection(this.db, COLLECTION_PATHS.MEETS));
+    const qdelete = query(this.db.collection(COLLECTION_PATHS.MEETS));
     const subscriber = qdelete.onSnapshot(
       (snapshot) => {
         snapshot.docChanges().forEach((change) => {
@@ -214,47 +278,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
     );
   };
 
-  streamCleanUp = () => {
-    console.log("streamCleanUp");
-
-    if (this.localMediaStream) {
-      this.localMediaStream.getTracks().forEach((t) => t.stop());
-      this.localMediaStream.release();
-    }
-
-    if (this.remoteMediaStream) {
-      this.remoteMediaStream.getTracks().forEach((t) => t.stop());
-      this.remoteMediaStream.release();
-    }
-    this.localMediaStream = null;
-    this.remoteMediaStream = null;
-
-    this.setLocalStream?.(null);
-    this.setRemoteStream?.(null);
-  };
-
-  firebaseCleanUp = async () => {
-    console.log("firebaseCleanUp");
-    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, COLLECTION_PATHS.ROOM_ID);
-    if (cRef) {
-      const qee = query(collection(cRef, COLLECTION_PATHS.CALLEE));
-      const calleeCandidate = await getDocs(qee);
-      calleeCandidate.forEach(async (candidate) => {
-        await deleteDoc(candidate.ref);
-      });
-      const qer = query(collection(cRef, COLLECTION_PATHS.CALLER));
-      const callerCandidate = await getDocs(qer);
-      callerCandidate.forEach(async (candidate) => {
-        await deleteDoc(candidate.ref);
-      });
-      deleteDoc(cRef);
-    }
-  };
-
-  getConnecting = async () => {
-    return this.connecting;
-  };
-
   addEventListener<K extends keyof RTCPeerConnectionEventMap>(
     type: K,
     callback: (event: any) => void
@@ -263,10 +286,6 @@ class WebRTCFirbase extends Base implements IVideoCall {
       this.peerConnection.addEventListener(type, callback);
     }
   }
-
-  getPeerConnection = () => {
-    return this.peerConnection;
-  };
 
   setup = async () => {
     console.log("Setup webrtc");
@@ -346,7 +365,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     }
 
     // Document for the call
-    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, COLLECTION_PATHS.ROOM_ID);
+    const cRef = this.db.collection(COLLECTION_PATHS.MEETS).doc(COLLECTION_PATHS.ROOM_ID);
 
     this.listenRemoteHangup()
 
@@ -381,7 +400,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
           },
         };
 
-        await setDoc(cRef, cWithOffer);
+        await cRef.set(cWithOffer);
       } catch (error) {
         console.log("error", error);
       }
@@ -393,7 +412,7 @@ class WebRTCFirbase extends Base implements IVideoCall {
     this.connecting = true;
     this.setGettingCall?.(false);
 
-    const cRef = doc(this.db, COLLECTION_PATHS.MEETS, COLLECTION_PATHS.ROOM_ID);
+    const cRef = this.db.collection(COLLECTION_PATHS.MEETS).doc(COLLECTION_PATHS.ROOM_ID);
     const offer = (await cRef.get()).data()?.offer;
 
     if (offer) {
@@ -440,6 +459,43 @@ class WebRTCFirbase extends Base implements IVideoCall {
     if (this.peerConnection) {
       this.peerConnection.close();
       this.peerConnection = null;
+    }
+  };
+
+  streamCleanUp = () => {
+    console.log("streamCleanUp");
+
+    if (this.localMediaStream) {
+      this.localMediaStream.getTracks().forEach((t) => t.stop());
+      this.localMediaStream.release();
+    }
+
+    if (this.remoteMediaStream) {
+      this.remoteMediaStream.getTracks().forEach((t) => t.stop());
+      this.remoteMediaStream.release();
+    }
+    this.localMediaStream = null;
+    this.remoteMediaStream = null;
+
+    this.setLocalStream?.(undefined);
+    this.setRemoteStream?.(undefined);
+  };
+
+  firebaseCleanUp = async () => {
+    console.log("firebaseCleanUp");
+    const cRef = this.db.collection(COLLECTION_PATHS.MEETS).doc(COLLECTION_PATHS.ROOM_ID);
+    if (cRef) {
+      const qee = query(collection(cRef, COLLECTION_PATHS.CALLEE));
+      const calleeCandidate = await qee.get();
+      calleeCandidate.forEach(async (candidate) => {
+        await candidate.ref.delete();
+      });
+      const qer = query(collection(cRef, COLLECTION_PATHS.CALLER));
+      const callerCandidate = await qer.get();
+      callerCandidate.forEach(async (candidate) => {
+        await candidate.ref.delete();
+      });
+      cRef.delete();
     }
   };
 
@@ -498,57 +554,4 @@ class WebRTCFirbase extends Base implements IVideoCall {
       console.log(error);
     }
   };
-
-  getAvailableMediaDevices = async () => {
-    try {
-      this.cameraCount = 0;
-      const devices: any = await mediaDevices.enumerateDevices();
-
-      devices.map((device: {kind: string}) => {
-        if (device.kind != "videoinput") {
-          return;
-        }
-
-        this.cameraCount = this.cameraCount + 1;
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  getStream = async () => {
-    let mediaConstraints = {
-      audio: true,
-      video: {
-        frameRate: 30,
-        facingMode: "user",
-      },
-    };
-
-    let isVoiceOnly = false;
-    try {
-      const mediaStream = await mediaDevices.getUserMedia(mediaConstraints);
-
-      if (isVoiceOnly) {
-        let videoTrack = mediaStream.getVideoTracks()[0];
-        videoTrack.enabled = false;
-      }
-
-      return mediaStream;
-    } catch (err) {
-      console.log("err", err);
-      return null;
-    }
-  };
 }
-
-export const getWebRTCFirbaseProxyInstance = (props = {}) => {
-  if (!webRTCFirbaseInstance) {
-    webRTCFirbaseInstance = createWebRTCFirbaseProxy(props);
-  }
-  return webRTCFirbaseInstance;
-}
-
-export const createWebRTCFirbaseProxy = ({ }) => {
-  return new WebRTCFirbase();
-};
