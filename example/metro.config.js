@@ -22,7 +22,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
   path.resolve(monorepoPackages, 'base/node_modules'),
-  path.resolve(monorepoPackages, 'webrtc/node_modules'),
+  path.resolve(monorepoPackages, 'firebase_user/node_modules'),
+  path.resolve(monorepoPackages, 'webrtc_firebase/node_modules'),
 ];
 
 config.watchFolders = [
@@ -30,8 +31,8 @@ config.watchFolders = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(monorepoRoot, "node_modules"),
   path.resolve(monorepoPackages, 'base/node_modules'),
-  path.resolve(monorepoPackages, 'webrtc/node_modules'),
-
+  path.resolve(monorepoPackages, 'firebase_user/node_modules'),
+  path.resolve(monorepoPackages, 'webrtc_firebase/node_modules'),
 ];
 
 config.transformer.getTransformOptions = async () => ({

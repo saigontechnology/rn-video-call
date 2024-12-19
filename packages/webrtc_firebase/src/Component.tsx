@@ -7,15 +7,12 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-const VideoComponent = (props: Props) => {
-  console.log('renderVideoComponent', props)
-  return (
-    <RTCView
-      streamURL={props.streamURL}
-      objectFit={"cover"}
-      style={props.style}
-    />
-  );
-};
+const VideoComponent = (props: Props) => (
+  <RTCView
+    streamURL={props.streamURL}
+    objectFit={"cover"}
+    style={props.style}
+  />
+);
 
 export default VideoComponent;

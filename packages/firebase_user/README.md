@@ -1,11 +1,11 @@
-# rn-video-call
+# @rn-video-call/firebase_user
 
-A module for expo video call 
+A third-party for rn-video-call for managing user based on Firebase service
 
 # API documentation
 
-- [Documentation for the main branch](https://github.com/expo/expo/blob/main/docs/pages/versions/unversioned/sdk/rn-video-call.md)
-- [Documentation for the latest stable release](https://docs.expo.dev/versions/latest/sdk/rn-video-call/)
+- [Documentation for the main branch](https://github.com/expo/expo/blob/main/docs/pages/versions/unversioned/sdk/webrtc-firebase.md)
+- [Documentation for the latest stable release](https://docs.expo.dev/versions/latest/sdk/webrtc-firebase/)
 
 # Installation in managed Expo projects
 
@@ -14,11 +14,10 @@ For [managed](https://docs.expo.dev/archive/managed-vs-bare/) Expo projects, ple
 # Installation in bare React Native projects
 
 For bare React Native projects, you must ensure that you have [installed and configured the `expo` package](https://docs.expo.dev/bare/installing-expo-modules/) before continuing.
-
 ### Add the package to your npm dependencies
 
 ```
-npm install @rn-video-call/base @rn-video-call/webrtc_firebase @react-native-firebase/app
+npm install @rn-video-call/firebase_user
 ```
 
 Configure for Firebase as described in [Firebase Getting Started](https://rnfirebase.io)
@@ -27,8 +26,8 @@ Configure for Firebase as described in [Firebase Getting Started](https://rnfire
 
 Adding configure for pod in Podfile
 ```
+pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app/'
 pod 'RNFBFirestore', :path => '../node_modules/@react-native-firebase/firestore/'
-pod 'react-native-webrtc', :path => '../node_modules/react-native-webrtc/'
 ```
 
 Run `npx pod-install` after installing the npm package.
@@ -40,16 +39,16 @@ Adding configure for settings.gradle of project (in `android/settings.gradle`)
 ```
 include ':@react-native-firebase_firestore'
 project(':@react-native-firebase_firestore').projectDir = new File(rootProject.projectDir, './../node_modules/@react-native-firebase/firestore/android')
-include ':react-native-webrtc'
-project(':react-native-webrtc').projectDir = new File(rootProject.projectDir, './../node_modules/react-native-webrtc/android')
+include ':@react-native-firebase_app'
+project(':@react-native-firebase_app').projectDir = new File(rootProject.projectDir, './../node_modules/@react-native-firebase/app/android')
 ```
 
 Adding configure for build.gradlew of app (in `android/app/build.gradle`)
 ```
 dependencies {
   ...
+  implementation project(path: ":@react-native-firebase_app")
   implementation project(path: ":@react-native-firebase_firestore")
-  implementation project(path: ":react-native-webrtc")
   ...
 }
 ```
@@ -58,8 +57,8 @@ Adding native Package Module in app MainApplication.kt
 ``` kt
 ... // Other packages
 
+import io.invertase.firebase.app.ReactNativeFirebaseAppPackage
 import io.invertase.firebase.firestore.ReactNativeFirebaseFirestorePackage;
-import com.oney.WebRTCModule.WebRTCModulePackage;
 
 class MainApplication : Application(), ReactApplication {
   override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
@@ -69,8 +68,8 @@ class MainApplication : Application(), ReactApplication {
         return PackageList(this).packages.apply {
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // add(MyReactNativePackage())
+          add(ReactNativeFirebaseAppPackage());
           add(ReactNativeFirebaseFirestorePackage());
-          add(WebRTCModulePackage());
         }
       }
     }
@@ -79,72 +78,24 @@ class MainApplication : Application(), ReactApplication {
 }
 ```
 
-#  Usaged
-
-PROJECT REQUIREMENT:
-
-- Provide Video Call feature module
-- Proxy for Video call service, (WEBRTC-FIREBASE, THIRD-PARTY, ...)
-- Integrate react firebase chat
-
-I. Video Call feature:
- 
- Setup
- Create Channel
- Join
- Hangup/EndCall
- Clean
-
-II. Proxy
-
- Create Interface Method
- Create specific client for Proxy 
-
-
-import firebaseVideocall from 'FirebaseVideocall'
-
-import thirdParty from 'THIRD-PARTY'
-
-class FIRBASE_PROXY implement IVideoCall {
-
-Setup {
-  firebaseVideocall.config(..params)
- }
-
- Create_Channel{
- }
-
- Join {
- }
- Hangup/EndCall
- Clean
-}
-
-III. Integrate react firebase chat
-
-// Create Provider/ Create context 
-
-App()
-
-// Implement
-const {setUp, join} = useVideoCallProvider()
-
 ### Example Usage
-##### Implementing WebRTC proxy
+##### Implementing Firestore User Provider
 
-On Root App file (e.g. `App.tsx`), wrap app with `VideoCallContext`
+On Root App file (e.g. `App.tsx`), wrap app with `FirestoreUserProvider`
 ```js
-import { VideoCallContext } from "@rn-video-call/base";
-import { getWebRTCFirbaseProxyInstance } from "@rn-video-call/webrtc_firebase";
+import { FirestoreUserProvider } from "@rn-video-call/firebase_user";
 
 export default function App() {
-  const client = useRef(getWebRTCFirbaseProxyInstance({}));
   ...
-
+  const DEMO_USER = {
+    id: 'user-demo',
+    name: 'UserDemo',
+    avatar: '',
+  }
   return (
-    <VideoCallContext.Provider value={client.current}>
+    <FirestoreUserProvider userInfo={DEMO_USER}>
       ...
-    </VideoCallContext.Provider>
+    </FirestoreUserProvider>
   )
 }
 ```

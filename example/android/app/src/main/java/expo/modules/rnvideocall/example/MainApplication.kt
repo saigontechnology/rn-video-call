@@ -15,6 +15,7 @@ import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
+import io.invertase.firebase.app.ReactNativeFirebaseAppPackage
 import io.invertase.firebase.firestore.ReactNativeFirebaseFirestorePackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
 
@@ -27,6 +28,7 @@ class MainApplication : Application(), ReactApplication {
             return PackageList(this).packages.apply {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
+              add(ReactNativeFirebaseAppPackage());
               add(ReactNativeFirebaseFirestorePackage());
               add(WebRTCModulePackage());
             }

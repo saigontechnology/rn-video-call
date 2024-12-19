@@ -1,6 +1,6 @@
 # Base
 
-Base source for rn-video-call
+Base source building a video call service for rn-video-call
 
 # Contributing
 

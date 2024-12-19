@@ -144,6 +144,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
+    implementation project(path: ":@react-native-firebase_app")
     implementation project(path: ":@react-native-firebase_firestore")
     implementation project(path: ":react-native-webrtc")
 
